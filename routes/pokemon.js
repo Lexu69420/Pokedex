@@ -1,48 +1,41 @@
 const express = require("express");
-const axios = require('axios');
-const dotenv = require("dotenv");
-dotenv.config();
+const axios = require("axios");
 
 const router = express.Router();
-const API_URL = process.env.API_URL;
+const API_URL = "https://pokeapi.co/api/v2/pokemon?limit=50";
 
-router.get("/", async (req, res) => {      
-    try {
-        const response = await axios.get(`${API_URL}/pokemon`);
-        return res.render("page/home", {pokeonList: response.data.results});
-    } catch (error) {
-        console.error(error);
-        return res.status(500).json({
-            message: "Internal Server Error",
-        });
-    }
+
+router.get("/", async (req, res) => {
+  try {
+    const response = await axios.get(API_URL);
+    res.render("pages/home", { pokemonList: response.data.results });
+  } catch (error) {
+    res.status(500).send("Error fetching Pokémon data");
+  }
 });
 
-router.get("/pokemon/:name", async (req, res) => {
-    try {
-        const { name } = req.params;
-        const response = await axios.get(`${API_URL}/${name}`);
-        return res.render("page/detail", {pokemon: response.data});
-    } catch (error) {
-        console.error(error);
-        return res.status(500).json({
-            message: "Internal Server Error",
-        });
-    }
-});
 
 router.get("/search", async (req, res) => {
-    try {
-        const { name } = req.query;
-        if (!name) return res.redirect("/");
-        const response = await axios.get(`${API_URL}/${name.toLowerCase()}`);
-        return res.render("page/detail", {pokemon: response.data});
-    } catch (error) {
-        console.error(error);
-        return res.status(500).json({
-            message: "Internal Server Error",
-        });
-    }
+  try {
+    const { name } = req.query;
+    if (!name) return res.redirect("/");
+
+    const response = await axios.get(`https://pokeapi.co/api/v2/pokemon/${name.toLowerCase()}`);
+    res.render("pages/details", { pokemon: response.data });
+  } catch (error) {
+    res.status(404).send("Pokémon not found");
+  }
+});
+
+
+router.get("/pokemon/:name", async (req, res) => {
+  try {
+    const { name } = req.params;
+    const response = await axios.get(`https://pokeapi.co/api/v2/pokemon/${name}`);
+    res.render("pages/details", { pokemon: response.data });
+  } catch (error) {
+    res.status(500).send("Pokémon not found");
+  }
 });
 
 module.exports = router;
